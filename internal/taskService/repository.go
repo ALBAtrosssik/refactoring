@@ -12,9 +12,9 @@ type TaskRepository interface {
 	GetAllTasks() ([]Task, error)
 	// UpdateTaskByID - Передаем id и Task, возвращаем обновленный Task
 	// и ошибку
-	UpdateTaskByID(id string, task Task) (Task, error)
+	UpdateTaskByID(id uint, task Task) (Task, error)
 	// DeleteTaskByID - Передаем id для удаления, возвращаем только ошибку
-	DeleteTaskByID(id string) error
+	DeleteTaskByID(id uint) error
 }
 
 type taskRepository struct {
@@ -42,7 +42,7 @@ func (r *taskRepository) GetAllTasks() ([]Task, error) {
 	return tasks, err
 }
 
-func (r *taskRepository) UpdateTaskByID(id string, task Task) (Task, error) {
+func (r *taskRepository) UpdateTaskByID(id uint, task Task) (Task, error) {
 	result := r.db.First(&task, id)
 	if result.Error != nil {
 		return Task{}, result.Error
@@ -62,7 +62,7 @@ func (r *taskRepository) UpdateTaskByID(id string, task Task) (Task, error) {
 	return task, nil
 }
 
-func (r *taskRepository) DeleteTaskByID(id string) error {
+func (r *taskRepository) DeleteTaskByID(id uint) error {
 	var task Task
 	err := r.db.Delete(&task, id).Error
 	return err

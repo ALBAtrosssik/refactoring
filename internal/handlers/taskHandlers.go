@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"petproject/internal/taskService"
+	"strconv"
 )
 
 type Handler struct {
@@ -49,7 +50,18 @@ func (h *Handler) PostTaskHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) PatchTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task taskService.Task
 	vars := mux.Vars(r)
-	id := vars["id"]
+	idStr, exists := vars["id"]
+	if !exists {
+		http.Error(w, "ID not found", http.StatusBadRequest)
+		return
+	}
+
+	idUint64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+	id := uint(idUint64)
 
 	editedTask, err := h.Service.UpdateTaskByID(id, task)
 	if err != nil {
@@ -63,9 +75,20 @@ func (h *Handler) PatchTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]
+	idStr, exists := vars["id"]
+	if !exists {
+		http.Error(w, "ID not found", http.StatusBadRequest)
+		return
+	}
 
-	err := h.Service.DeleteTaskByID(id)
+	idUint64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+	id := uint(idUint64)
+
+	err = h.Service.DeleteTaskByID(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
