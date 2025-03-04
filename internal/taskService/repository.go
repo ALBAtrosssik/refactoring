@@ -1,7 +1,6 @@
 package taskService
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -28,8 +27,6 @@ func NewTaskRepository(db *gorm.DB) *taskRepository {
 
 // (r *taskRepository) привязывает данную функцию к нашему репозиторию
 func (r *taskRepository) CreateTask(task Task) (Task, error) {
-	fmt.Printf("Inserting task into DB: %+v\n", task)
-
 	result := r.db.Create(&task)
 	if result.Error != nil {
 		return Task{}, result.Error
@@ -44,18 +41,19 @@ func (r *taskRepository) GetAllTasks() ([]Task, error) {
 	return tasks, err
 }
 
-func (r *taskRepository) UpdateTaskByID(id uint, task Task) (Task, error) {
+func (r *taskRepository) UpdateTaskByID(id uint, updates Task) (Task, error) {
+	var task Task
+
 	result := r.db.First(&task, id)
 	if result.Error != nil {
 		return Task{}, result.Error
 	}
 
-	if !task.IsDone {
-		task.IsDone = true
-	} else {
-		task.IsDone = false
+	if updates.Task != "" {
+		task.Task = updates.Task
 	}
 
+	task.IsDone = updates.IsDone
 	result = r.db.Save(&task)
 	if result.Error != nil {
 		return Task{}, result.Error

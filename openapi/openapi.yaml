@@ -38,7 +38,7 @@ paths:
 
   /tasks/{id}:
     patch:
-      summary: Change task status
+      summary: Update task (name or status)
       tags:
         - tasks
       parameters:
@@ -48,15 +48,22 @@ paths:
           description: ID of the task to update
           schema:
             type: integer
+      requestBody:
+        description: The fields to update (one or both)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
       responses:
         '200':
-          description: Change status
+          description: Updated task
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
         '400':
-          description: Invalid ID supplied
+          description: Invalid request body or ID supplied
         '404':
           description: Task not found
     delete:
@@ -85,7 +92,7 @@ components:
       properties:
         id:
           type: integer
-          format: uint # так как в БД айди это только положительные числа.
+          format: uint
         task:
           type: string
         is_done:

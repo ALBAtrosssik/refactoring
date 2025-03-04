@@ -24,6 +24,9 @@ type Task struct {
 // PostTasksJSONRequestBody defines body for PostTasks for application/json ContentType.
 type PostTasksJSONRequestBody = Task
 
+// PatchTasksIdJSONRequestBody defines body for PatchTasksId for application/json ContentType.
+type PatchTasksIdJSONRequestBody = Task
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Get all tasks
@@ -35,7 +38,7 @@ type ServerInterface interface {
 	// Delete task
 	// (DELETE /tasks/{id})
 	DeleteTasksId(ctx echo.Context, id int) error
-	// Change task status
+	// Update task (name or status)
 	// (PATCH /tasks/{id})
 	PatchTasksId(ctx echo.Context, id int) error
 }
@@ -196,7 +199,8 @@ func (response DeleteTasksId404Response) VisitDeleteTasksIdResponse(w http.Respo
 }
 
 type PatchTasksIdRequestObject struct {
-	Id int `json:"id"`
+	Id   int `json:"id"`
+	Body *PatchTasksIdJSONRequestBody
 }
 
 type PatchTasksIdResponseObject interface {
@@ -239,7 +243,7 @@ type StrictServerInterface interface {
 	// Delete task
 	// (DELETE /tasks/{id})
 	DeleteTasksId(ctx context.Context, request DeleteTasksIdRequestObject) (DeleteTasksIdResponseObject, error)
-	// Change task status
+	// Update task (name or status)
 	// (PATCH /tasks/{id})
 	PatchTasksId(ctx context.Context, request PatchTasksIdRequestObject) (PatchTasksIdResponseObject, error)
 }
@@ -338,6 +342,12 @@ func (sh *strictHandler) PatchTasksId(ctx echo.Context, id int) error {
 	var request PatchTasksIdRequestObject
 
 	request.Id = id
+
+	var body PatchTasksIdJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.PatchTasksId(ctx.Request().Context(), request.(PatchTasksIdRequestObject))

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"golang.org/x/net/context"
 	"petproject/internal/taskService"
 	"petproject/internal/web/tasks"
@@ -44,7 +43,6 @@ func (h *Handler) PostTasks(_ context.Context, request tasks.PostTasksRequestObj
 		Task:   *taskRequest.Task,
 		IsDone: *taskRequest.IsDone,
 	}
-	fmt.Printf("Creating task: %+v\n", taskToCreate)
 
 	createdTask, err := h.Service.CreateTask(taskToCreate)
 
@@ -62,10 +60,14 @@ func (h *Handler) PostTasks(_ context.Context, request tasks.PostTasksRequestObj
 }
 
 func (h *Handler) PatchTasksId(_ context.Context, request tasks.PatchTasksIdRequestObject) (tasks.PatchTasksIdResponseObject, error) {
-	var task taskService.Task
 	id := uint(request.Id)
+	taskUpdates := request.Body
 
-	updatedTask, err := h.Service.UpdateTaskByID(id, task)
+	updatedTask, err := h.Service.UpdateTaskByID(id, taskService.Task{
+		Task:   *taskUpdates.Task,
+		IsDone: *taskUpdates.IsDone,
+	})
+
 	if err != nil {
 		return tasks.PatchTasksId404Response{}, nil
 	}
