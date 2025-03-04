@@ -50,7 +50,7 @@ func (r *taskRepository) UpdateTaskByID(id uint, task Task) (Task, error) {
 		return Task{}, result.Error
 	}
 
-	if task.IsDone == false {
+	if !task.IsDone {
 		task.IsDone = true
 	} else {
 		task.IsDone = false
