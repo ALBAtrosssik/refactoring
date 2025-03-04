@@ -1,6 +1,7 @@
 package taskService
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -27,6 +28,7 @@ func NewTaskRepository(db *gorm.DB) *taskRepository {
 
 // (r *taskRepository) привязывает данную функцию к нашему репозиторию
 func (r *taskRepository) CreateTask(task Task) (Task, error) {
+	fmt.Printf("Inserting task into DB: %+v\n", task)
 
 	result := r.db.Create(&task)
 	if result.Error != nil {

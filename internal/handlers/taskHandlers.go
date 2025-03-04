@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"encoding/json"
-	"github.com/gorilla/mux"
-	"net/http"
+	"fmt"
+	"golang.org/x/net/context"
 	"petproject/internal/taskService"
-	"strconv"
+	"petproject/internal/web/tasks"
 )
 
 type Handler struct {
@@ -18,82 +17,74 @@ func NewHandler(service *taskService.TaskService) *Handler {
 	}
 }
 
-func (h *Handler) GetTasksHandler(w http.ResponseWriter, _ *http.Request) {
-	tasks, err := h.Service.GetAllTasks()
+func (h *Handler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (tasks.GetTasksResponseObject, error) {
+	allTasks, err := h.Service.GetAllTasks()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	response := tasks.GetTasks200JSONResponse{}
+
+	for _, tsk := range allTasks {
+		task := tasks.Task{
+			Id:     &tsk.ID,
+			Task:   &tsk.Task,
+			IsDone: &tsk.IsDone,
+		}
+		response = append(response, task)
+	}
+
+	return response, nil
 }
 
-func (h *Handler) PostTaskHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PostTasks(_ context.Context, request tasks.PostTasksRequestObject) (tasks.PostTasksResponseObject, error) {
+	taskRequest := request.Body
+
+	taskToCreate := taskService.Task{
+		Task:   *taskRequest.Task,
+		IsDone: *taskRequest.IsDone,
+	}
+	fmt.Printf("Creating task: %+v\n", taskToCreate)
+
+	createdTask, err := h.Service.CreateTask(taskToCreate)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response := tasks.PostTasks201JSONResponse{
+		Id:     &createdTask.ID,
+		Task:   &createdTask.Task,
+		IsDone: &createdTask.IsDone,
+	}
+
+	return response, nil
+}
+
+func (h *Handler) PatchTasksId(_ context.Context, request tasks.PatchTasksIdRequestObject) (tasks.PatchTasksIdResponseObject, error) {
 	var task taskService.Task
+	id := uint(request.Id)
 
-	err := json.NewDecoder(r.Body).Decode(&task)
+	updatedTask, err := h.Service.UpdateTaskByID(id, task)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return tasks.PatchTasksId404Response{}, nil
 	}
 
-	createdTask, err := h.Service.CreateTask(task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	response := tasks.PatchTasksId200JSONResponse{
+		Id:     &updatedTask.ID,
+		Task:   &updatedTask.Task,
+		IsDone: &updatedTask.IsDone,
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(createdTask)
+	return response, nil
 }
 
-func (h *Handler) PatchTaskHandler(w http.ResponseWriter, r *http.Request) {
-	var task taskService.Task
-	vars := mux.Vars(r)
-	idStr, exists := vars["id"]
-	if !exists {
-		http.Error(w, "ID not found", http.StatusBadRequest)
-		return
-	}
+func (h *Handler) DeleteTasksId(_ context.Context, request tasks.DeleteTasksIdRequestObject) (tasks.DeleteTasksIdResponseObject, error) {
+	id := uint(request.Id)
 
-	idUint64, err := strconv.ParseUint(idStr, 10, 32)
+	err := h.Service.DeleteTaskByID(id)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-	id := uint(idUint64)
-
-	editedTask, err := h.Service.UpdateTaskByID(id, task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return tasks.DeleteTasksId404Response{}, nil
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(editedTask)
-}
-
-func (h *Handler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr, exists := vars["id"]
-	if !exists {
-		http.Error(w, "ID not found", http.StatusBadRequest)
-		return
-	}
-
-	idUint64, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-	id := uint(idUint64)
-
-	err = h.Service.DeleteTaskByID(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(err)
+	return tasks.DeleteTasksId204Response{}, nil
 }
