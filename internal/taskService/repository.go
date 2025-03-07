@@ -1,8 +1,6 @@
 package taskService
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type TaskRepository interface {
 	// CreateTask - Передаем в функцию task типа Task из orm.go
@@ -53,7 +51,10 @@ func (r *taskRepository) UpdateTaskByID(id uint, updates Task) (Task, error) {
 		task.Task = updates.Task
 	}
 
-	task.IsDone = updates.IsDone
+	if updates.IsDone != task.IsDone {
+		task.IsDone = updates.IsDone
+	}
+
 	result = r.db.Save(&task)
 	if result.Error != nil {
 		return Task{}, result.Error

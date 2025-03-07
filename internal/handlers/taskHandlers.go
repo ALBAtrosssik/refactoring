@@ -6,17 +6,17 @@ import (
 	"petproject/internal/web/tasks"
 )
 
-type Handler struct {
+type TaskHandler struct {
 	Service *taskService.TaskService
 }
 
-func NewHandler(service *taskService.TaskService) *Handler {
-	return &Handler{
+func NewTaskHandler(service *taskService.TaskService) *TaskHandler {
+	return &TaskHandler{
 		Service: service,
 	}
 }
 
-func (h *Handler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (tasks.GetTasksResponseObject, error) {
+func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (tasks.GetTasksResponseObject, error) {
 	allTasks, err := h.Service.GetAllTasks()
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (h *Handler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (ta
 	return response, nil
 }
 
-func (h *Handler) PostTasks(_ context.Context, request tasks.PostTasksRequestObject) (tasks.PostTasksResponseObject, error) {
+func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksRequestObject) (tasks.PostTasksResponseObject, error) {
 	taskRequest := request.Body
 
 	taskToCreate := taskService.Task{
@@ -59,15 +59,36 @@ func (h *Handler) PostTasks(_ context.Context, request tasks.PostTasksRequestObj
 	return response, nil
 }
 
-func (h *Handler) PatchTasksId(_ context.Context, request tasks.PatchTasksIdRequestObject) (tasks.PatchTasksIdResponseObject, error) {
+func (h *TaskHandler) PatchTasksId(_ context.Context, request tasks.PatchTasksIdRequestObject) (tasks.PatchTasksIdResponseObject, error) {
 	id := uint(request.Id)
 	taskUpdates := request.Body
 
-	updatedTask, err := h.Service.UpdateTaskByID(id, taskService.Task{
-		Task:   *taskUpdates.Task,
-		IsDone: *taskUpdates.IsDone,
-	})
+	allTasks, err := h.Service.GetAllTasks()
+	if err != nil {
+		return tasks.PatchTasksId404Response{}, nil
+	}
 
+	var existingTask *taskService.Task
+	for _, t := range allTasks {
+		if t.ID == id {
+			existingTask = &t
+			break
+		}
+	}
+
+	if existingTask == nil {
+		return tasks.PatchTasksId404Response{}, nil
+	}
+
+	if taskUpdates.Task != nil {
+		existingTask.Task = *taskUpdates.Task
+	}
+
+	if taskUpdates.IsDone != nil {
+		existingTask.IsDone = *taskUpdates.IsDone
+	}
+
+	updatedTask, err := h.Service.UpdateTaskByID(id, *existingTask)
 	if err != nil {
 		return tasks.PatchTasksId404Response{}, nil
 	}
@@ -80,7 +101,7 @@ func (h *Handler) PatchTasksId(_ context.Context, request tasks.PatchTasksIdRequ
 	return response, nil
 }
 
-func (h *Handler) DeleteTasksId(_ context.Context, request tasks.DeleteTasksIdRequestObject) (tasks.DeleteTasksIdResponseObject, error) {
+func (h *TaskHandler) DeleteTasksId(_ context.Context, request tasks.DeleteTasksIdRequestObject) (tasks.DeleteTasksIdResponseObject, error) {
 	id := uint(request.Id)
 
 	err := h.Service.DeleteTaskByID(id)

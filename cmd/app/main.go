@@ -7,16 +7,21 @@ import (
 	"petproject/internal/database"
 	"petproject/internal/handlers"
 	"petproject/internal/taskService"
+	"petproject/internal/userService"
 	"petproject/internal/web/tasks"
+	"petproject/internal/web/users"
 )
 
 func main() {
 	database.InitDB()
 
-	repo := taskService.NewTaskRepository(database.DB)
-	service := taskService.NewService(repo)
+	taskRepo := taskService.NewTaskRepository(database.DB)
+	taskService := taskService.NewTaskService(taskRepo)
+	userRepo := userService.NewUserRepository(database.DB)
+	userService := userService.NewUserService(userRepo)
 
-	handler := handlers.NewHandler(service)
+	taskHandler := handlers.NewTaskHandler(taskService)
+	userHandler := handlers.NewUserHandler(userService)
 
 	// Инициализируем echo
 	e := echo.New()
@@ -26,8 +31,10 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Прикол для работы в echo. Передаем и регистрируем хендлер в echo
-	strictHandler := tasks.NewStrictHandler(handler, nil) // тут будет ошибка
-	tasks.RegisterHandlers(e, strictHandler)
+	strictTaskHandler := tasks.NewStrictHandler(taskHandler, nil) // тут будет ошибка
+	tasks.RegisterHandlers(e, strictTaskHandler)
+	strictUserHandler := users.NewStrictHandler(userHandler, nil) // тут будет ошибка
+	users.RegisterHandlers(e, strictUserHandler)
 
 	if err := e.Start(":8080"); err != nil {
 		log.Fatalf("failed to start with err: %v", err)

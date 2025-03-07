@@ -85,6 +85,87 @@ paths:
         '404':
           description: Task not found
 
+  /users:
+    get:
+      summary: Get all users
+      tags:
+        - users
+      responses:
+        '200':
+          description: A list of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create new user
+      tags:
+        - users
+      requestBody:
+        description: The user to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: The created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{id}:
+    patch:
+      summary: Update user (name or status)
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: integer
+      requestBody:
+        description: The fields to update (one or both)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request body or ID supplied
+        '404':
+          description: User not found
+    delete:
+      summary: Delete user
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to delete
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted successfully (No Content)
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: User not found
+          
 components:
   schemas:
     Task:
@@ -97,3 +178,22 @@ components:
           type: string
         is_done:
           type: boolean
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint
+        email:
+          type: string
+        password:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        delete_at:
+          type: string
+          format: date-time
