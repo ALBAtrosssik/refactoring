@@ -16,14 +16,14 @@ func NewTaskHandler(service *taskService.TaskService) *TaskHandler {
 	}
 }
 
-func (h *TaskHandler) GetTasksbyidUserId(_ context.Context, request tasks.GetTasksbyidUserIdRequestObject) (tasks.GetTasksbyidUserIdResponseObject, error) {
+func (h *TaskHandler) GetApiUsersUserIdTasks(_ context.Context, request tasks.GetApiUsersUserIdTasksRequestObject) (tasks.GetApiUsersUserIdTasksResponseObject, error) {
 	userId := uint(request.UserId)
 	allTasks, err := h.Service.GetAllTasksById(userId)
 	if err != nil {
-		return tasks.GetTasksbyidUserId404Response{}, nil
+		return tasks.GetApiUsersUserIdTasks404Response{}, nil
 	}
 
-	response := tasks.GetTasksbyidUserId200JSONResponse{}
+	response := tasks.GetApiUsersUserIdTasks200JSONResponse{}
 
 	for _, tsk := range allTasks.([]taskService.Task) {
 		task := tasks.Task{

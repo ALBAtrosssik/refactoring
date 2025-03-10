@@ -191,7 +191,7 @@ paths:
         '404':
           description: User not found
 
-  /tasksbyid/{user_id}:
+  /api/users/{user_id}/tasks:
     get:
       summary: Get all tasks for a specific user
       tags:
