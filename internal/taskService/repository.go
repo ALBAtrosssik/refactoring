@@ -8,8 +8,9 @@ type TaskRepository interface {
 	CreateTask(task Task) (Task, error)
 	// GetAllTasks - Возвращаем массив из всех задач в БД и ошибку
 	GetAllTasks() ([]Task, error)
+	// GetTasksById - Передаем id и возвращаем массив всех задач по пользователю
+	GetAllTasksById(userId uint) ([]Task, error)
 	// UpdateTaskByID - Передаем id и Task, возвращаем обновленный Task
-	// и ошибку
 	UpdateTaskByID(id uint, task Task) (Task, error)
 	// DeleteTaskByID - Передаем id для удаления, возвращаем только ошибку
 	DeleteTaskByID(id uint) error
@@ -39,6 +40,12 @@ func (r *taskRepository) GetAllTasks() ([]Task, error) {
 	return tasks, err
 }
 
+func (r *taskRepository) GetAllTasksById(userId uint) ([]Task, error) {
+	var tasks []Task
+	err := r.db.Where("user_id = ?", userId).Find(&tasks).Error
+	return tasks, err
+}
+
 func (r *taskRepository) UpdateTaskByID(id uint, updates Task) (Task, error) {
 	var task Task
 
@@ -53,6 +60,10 @@ func (r *taskRepository) UpdateTaskByID(id uint, updates Task) (Task, error) {
 
 	if updates.IsDone != task.IsDone {
 		task.IsDone = updates.IsDone
+	}
+
+	if updates.UserID != task.UserID {
+		task.UserID = updates.UserID
 	}
 
 	result = r.db.Save(&task)

@@ -4,20 +4,11 @@ MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
 # Создание новой миграции
 migrate-new:
-	@read -p "Enter migration name: " name; \
-	migrate create -ext sql -dir ./migrations "$${name}"
+	migrate create -ext sql -dir ./migrations "$(NAME)"
 
 # Применение всех миграций
 migrate-up:
 	$(MIGRATE) up
-
-# Применение одной миграции (если нужно пошаговое применение)
-migrate-up-one:
-	$(MIGRATE) up 1
-
-# Откат последней миграции
-migrate-down-one:
-	$(MIGRATE) down 1
 
 # Полный откат всех миграций (использовать осторожно!)
 migrate-down:

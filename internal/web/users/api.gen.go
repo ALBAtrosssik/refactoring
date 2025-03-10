@@ -16,16 +16,22 @@ import (
 
 // User defines model for User.
 type User struct {
-	Id        *uint      `json:"id,omitempty"`
-	Email     *string    `json:"email,omitempty"`
-	Password  *string    `json:"password,omitempty"`
+	Email    *string `json:"email,omitempty"`
+	Id       *uint   `json:"id,omitempty"`
+	Password *string `json:"password,omitempty"`
+}
+
+// PatchUsersIdJSONBody defines parameters for PatchUsersId.
+type PatchUsersIdJSONBody struct {
+	Email    *string `json:"email,omitempty"`
+	Password *string `json:"password,omitempty"`
 }
 
 // PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
 type PostUsersJSONRequestBody = User
 
 // PatchUsersIdJSONRequestBody defines body for PatchUsersId for application/json ContentType.
-type PatchUsersIdJSONRequestBody = User
+type PatchUsersIdJSONRequestBody PatchUsersIdJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -38,7 +44,7 @@ type ServerInterface interface {
 	// Delete user
 	// (DELETE /users/{id})
 	DeleteUsersId(ctx echo.Context, id int) error
-	// Update user (name or status)
+	// Update user (email or password)
 	// (PATCH /users/{id})
 	PatchUsersId(ctx echo.Context, id int) error
 }
@@ -243,7 +249,7 @@ type StrictServerInterface interface {
 	// Delete user
 	// (DELETE /users/{id})
 	DeleteUsersId(ctx context.Context, request DeleteUsersIdRequestObject) (DeleteUsersIdResponseObject, error)
-	// Update user (name or status)
+	// Update user (email or password)
 	// (PATCH /users/{id})
 	PatchUsersId(ctx context.Context, request PatchUsersIdRequestObject) (PatchUsersIdResponseObject, error)
 }

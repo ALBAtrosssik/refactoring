@@ -2,6 +2,7 @@ openapi: 3.0.0
 info:
   title: API
   version: 1.0.0
+
 paths:
   /tasks:
     get:
@@ -17,6 +18,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
+
     post:
       summary: Create a new task
       tags:
@@ -27,7 +29,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Task'
+              type: object
+              properties:
+                task:
+                  type: string
+                is_done:
+                  type: boolean
+                user_id:
+                  type: integer
       responses:
         '201':
           description: The created task
@@ -49,12 +58,19 @@ paths:
           schema:
             type: integer
       requestBody:
-        description: The fields to update (one or both)
+        description: The fields to update (one or more)
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Task'
+              type: object
+              properties:
+                task:
+                  type: string
+                is_done:
+                  type: boolean
+                user_id:
+                  type: integer
       responses:
         '200':
           description: Updated task
@@ -66,6 +82,7 @@ paths:
           description: Invalid request body or ID supplied
         '404':
           description: Task not found
+
     delete:
       summary: Delete task
       tags:
@@ -92,13 +109,14 @@ paths:
         - users
       responses:
         '200':
-          description: A list of tasks
+          description: A list of users
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+
     post:
       summary: Create new user
       tags:
@@ -117,9 +135,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
   /users/{id}:
     patch:
-      summary: Update user (name or status)
+      summary: Update user (email or password)
       tags:
         - users
       parameters:
@@ -135,7 +154,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
       responses:
         '200':
           description: Updated user
@@ -147,6 +171,7 @@ paths:
           description: Invalid request body or ID supplied
         '404':
           description: User not found
+
     delete:
       summary: Delete user
       tags:
@@ -165,7 +190,31 @@ paths:
           description: Invalid ID supplied
         '404':
           description: User not found
-          
+
+  /tasksbyid/{user_id}:
+    get:
+      summary: Get all tasks for a specific user
+      tags:
+        - tasks
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user whose tasks to retrieve
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of tasks for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '404':
+          description: User not found
+
 components:
   schemas:
     Task:
@@ -178,6 +227,9 @@ components:
           type: string
         is_done:
           type: boolean
+        user_id:
+          type: integer
+          format: uint
     User:
       type: object
       properties:
@@ -188,12 +240,3 @@ components:
           type: string
         password:
           type: string
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        delete_at:
-          type: string
-          format: date-time
